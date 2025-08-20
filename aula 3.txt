@@ -1,0 +1,41 @@
+SELECT * from payment where customer_id = 7;
+
+SELECT customer.first_name, sum(payment.amount) from payment
+    inner join customer ON payment.customer_id = customer.customer_id
+    where payment.customer_id = 1;
+
+create Function total_pagamento(codigo int)
+RETURNS decimal (9,2)
+DETERMINISTIC
+begin
+DECLARE total decimal(9,2);
+SELECT sum(payment.amount) into total from payment
+    inner join customer ON payment.customer_id = customer.customer_id
+    where payment.customer_id = codigo;
+    RETURN total;
+end;
+SELECT total_pagamento(1);
+
+select first_name, total_pagamento(customer_id) from customer;
+
+create Function calc_comissao(codigo int)
+RETURNS decimal (9,2)
+DETERMINISTIC
+begin
+DECLARE total decimal(9,2);
+DECLARE comissao decimal(9,2);
+SELECT sum(payment.amount) into total from payment
+    inner join customer ON payment.customer_id = customer.customer_id
+    where payment.customer_id = codigo;
+
+  IF total >= 70 THEN
+        set comissao = total * 0.03;
+    ELSE
+        set comissao = total * 0.05;
+    END IF;
+    
+    RETURN comissao;
+end;
+
+
+SELECT calc_comissao(1);
