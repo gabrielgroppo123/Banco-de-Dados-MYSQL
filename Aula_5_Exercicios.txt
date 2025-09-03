@@ -1,0 +1,90 @@
+--Exercicio 1--
+CREATE PROCEDURE GenerosCliente(IN idcliente INT)
+BEGIN
+    SELECT DISTINCT c.name AS genero
+    FROM rental AS r
+    JOIN inventory AS i ON r.inventory_id = i.inventory_id
+    JOIN film_category AS fc ON i.film_id = fc.film_id
+    JOIN category AS c ON fc.category_id = c.category_id
+    WHERE r.customer_id = idcliente;
+END;
+
+CALL `GenerosCliente`(8);
+
+drop Procedure `GenerosCliente`;
+
+DELIMITER $$
+
+--Exercicio 2--
+CREATE FUNCTION gravalocacao(
+    idcliente INT,
+    idproduto INT,
+    idfuncionario INT
+) RETURNS INT
+DETERMINISTIC
+BEGIN
+    DECLARE new_rental_id INT;
+
+    INSERT INTO rental (rental_date, inventory_id, customer_id, staff_id)
+    VALUES (NOW(), idproduto, idcliente, idfuncionario);
+
+    SET new_rental_id = LAST_INSERT_ID();
+
+    RETURN new_rental_id;
+END $$
+
+DELIMITER ;
+
+SELECT gravalocacao(1, 38, 2);
+
+select * from rental;
+drop FUNCTION gravalocacao;
+DESCRIBE rental;
+
+DROP TRIGGER IF EXISTS baixa_estoque_filme;
+DROP TRIGGER IF EXISTS rental_date;
+
+
+--Exercicio 3--
+CREATE VIEW clientes_10_anos AS
+SELECT
+    customer_id,
+    CONCAT(first_name, ' ', last_name) AS nome_completo,
+    create_date
+FROM
+    customer
+WHERE
+    YEAR(create_date) <= (YEAR(NOW()) - 10);
+
+
+SELECT * from clientes_10_anos
+
+
+drop view clientes_10_anos;
+
+
+DELIMITER $$
+
+--Exercicio 4--
+CREATE FUNCTION calcula_desconto(idcliente INT) RETURNS DECIMAL(5,2)
+DETERMINISTIC
+BEGIN
+    DECLARE anos_cadastro INT;
+    DECLARE desconto DECIMAL(5,2);
+    DECLARE data_cadastro DATE;
+
+    SELECT create_date INTO data_cadastro FROM customer WHERE customer_id = idcliente;
+
+    SET anos_cadastro = YEAR(CURDATE()) - YEAR(data_cadastro);
+
+    SET desconto = anos_cadastro * 1;
+
+    IF desconto > 100 THEN
+        SET desconto = 100;
+    END IF;
+
+    RETURN desconto;
+END$$
+DELIMITER ;
+
+SELECT calcula_desconto(1) AS desconto_percentual;
