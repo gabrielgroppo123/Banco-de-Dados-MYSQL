@@ -1,0 +1,37 @@
+select * from actor;
+
+create table copia_actor as select * from actor;
+
+SELECT * from copia_actor;
+
+truncate table copia_actor;
+
+describe copia_actor;
+
+alter table copia_actor add COLUMN usuario VARCHAR(30);
+alter table copia_actor add COLUMN data_alteracao DATETIME;
+
+CREATE Trigger actor_copia after update on actor for each row
+begin
+declare nome varchar(50);
+IF new.first_name <> old.first_name then
+  set nome  = CONCAT(OLD.first_name, " ", OLD.last_name);
+  insert into copia_actor (actor_id,nome, usuario, data_alteracao) VALUES(old.actor_id, nome, "Guilherme", NOW());
+end if;
+end;
+
+drop TRIGGER actor_copia;
+describe actor;
+insert into actor (first_name, last_name) VALUES("Gustavo", "Bordinasso"); 
+
+update actor set first_name = "Guilherme" where actor_id = 201;
+
+show TRIGGERS;
+
+SELECT*from actor;
+
+select*from copia_actor;
+
+alter table copia_actor drop COLUMN last_name;
+
+alter table copia_actor add COLUMN nome varchar (50);
